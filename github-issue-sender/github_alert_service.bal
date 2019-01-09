@@ -15,7 +15,7 @@ github4:GitHubConfiguration gitHubConfig = {
     clientConfig: {
         auth: {
             scheme: http:OAUTH2,
-            accessToken: "a759aec73724f49966c777548cc21916a68ca4c4" //OAUTH2config:getAsString("GITHUB_TOKEN")
+            accessToken: "8ead1c4ae8081cb353823e397ac9d033c5acb8ea" //OAUTH2config:getAsString("GITHUB_TOKEN")
         }
     }
 };
@@ -98,6 +98,9 @@ service GithubAlert on httpListener {
                         } else {
                             ret = ack.reason();
                         }
+                    } else {
+                        string msg = "Issue : " + <string>issueReq.issue_title + " on Repository : " + <string>issueReq.repo_name;
+                        sendSMS(jsonRet.subscribers, untain(msg));
                     }
                 } else {
                     ret = jsonRet.reason();

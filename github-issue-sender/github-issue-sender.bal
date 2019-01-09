@@ -25,8 +25,8 @@ import ballerina/log;
 //github4:Client githubClient = new(gitHubConfig);
 
 twilio:TwilioConfiguration twilioConfig = {
-    accountSId: "AC8d68bb621b89cfc4e02ff3ba87ff9f54",//config:getAsString(ACCOUNT_SID),
-    authToken: "b0043c21662566c17474a6e2a86eac36"//config:getAsString(AUTH_TOKEN),
+    accountSId: "AC8d68bb621b89cfc4e02ff3ba87ff9f54", //config:getAsString(ACCOUNT_SID),
+    authToken: "b0043c21662566c17474a6e2a86eac36" //config:getAsString(AUTH_TOKEN),
     //xAuthyKey: config:getAsString(AUTHY_API_KEY)
 };
 twilio:Client twilioClient = new(twilioConfig);
@@ -48,6 +48,9 @@ public function main() {
     //handleFind(jsonRet);
     //createGithubIssue();
     //sendSMS();
+    //string stat = "From=+18647148814&To=+94710397382&Body=testing";
+    //string rep = stat.replaceAll("\\+", "%2B");
+    //io:println(rep);
 }
 
 //function createGithubIssue() {
@@ -78,29 +81,31 @@ public function main() {
 //    //}
 //}
 
-function sendSMS() {
-    //var details = twilioClient->sendSms("+18647148814", "+94710397382", "test app");
-    //if (details is twilio:SmsResponse) {
-    //    io:println(details);
-    //} else {
-    //    io:println(<string>details.detail().message);
-    //}
+function sendSMS(json subscribers, string msg) {
     http:Request req = new;
-    req.setTextPayload("From=%2B18647148814&To=%2B94710397382&Body=testing");
-    req.setHeader("Content-Type", "application/x-www-form-urlencoded");
+    int l = subscribers.length();
+    int i = 0;
+    while (i < l) {
+        string payload = "From=+18647148814&To=" + <string>subscribers[i] + "&Body=" + msg;
+        payload = payload.replaceAll("\\+", "%2B");
+        req.setTextPayload(payload);
+        req.setHeader("Content-Type", "application/x-www-form-urlencoded");
 
-    io:println(req.getPayloadAsString());
+        io:println(req.getPayloadAsString());
 
-    var response = clientEndpoint->post("/2010-04-01/Accounts/AC8d68bb621b89cfc4e02ff3ba87ff9f54/Messages.json", req);
-    if (response is http:Response) {
-        var msg = response.getJsonPayload();
-        if (msg is json) {
-            io:println(msg.toString());
+        var response = clientEndpoint->post("/2010-04-01/Accounts/AC8d68bb621b89cfc4e02ff3ba87ff9f54/Messages.json", req
+        );
+        if (response is http:Response) {
+            var returned = response.getJsonPayload();
+            if (returned is json) {
+                io:println(returned.toString());
+            } else {
+                log:printError("Response is not json", err = returned);
+            }
         } else {
-            log:printError("Response is not json", err = msg);
+            log:printError("Invalid response", err = response);
         }
-    } else {
-        log:printError("Invalid response", err = response);
+        i = i + 1;
     }
 }
 
