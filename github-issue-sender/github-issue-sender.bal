@@ -6,13 +6,13 @@ import wso2/twilio;
 import ballerina/io;
 import ballerina/log;
 
-mongodb:Client conn = new({
-        host: "localhost",
-        dbName: "testdb",
-        username: "",
-        password: "",
-        options: { sslEnabled: false, serverSelectionTimeout: 500 }
-    });
+//mongodb:Client conn = new({
+//        host: "localhost",
+//        dbName: "testdb",
+//        username: "",
+//        password: "",
+//        options: { sslEnabled: false, serverSelectionTimeout: 500 }
+//    });
 
 github4:GitHubConfiguration gitHubConfig = {
     clientConfig: {
@@ -47,7 +47,7 @@ public function main() {
     //var jsonRet = conn->find("subscriber", queryString);
     //handleFind(jsonRet);
     //createGithubIssue();
-    sendSMS();
+    //sendSMS();
 }
 
 function createGithubIssue() {
@@ -86,10 +86,6 @@ function sendSMS() {
     //    io:println(<string>details.detail().message);
     //}
     http:Request req = new;
-
-    // Set the JSON payload to the message to be sent to the endpoint.
-    //json jsonMsg = { firstNumber: 15.6, secondNumber: 18.9, operation: "add" };
-    //json jsonMsg = {From:"+18647148814",To:"+94710397382",Body:"testing"};
     req.setTextPayload("From=%2B18647148814&To=%2B94710397382&Body=testing");
     req.setHeader("Content-Type", "application/x-www-form-urlencoded");
 
@@ -110,18 +106,20 @@ function sendSMS() {
 
 
 
-function handleFind(json|error returned) {
-    if (returned is json) {
-        io:print("initial data:");
-        io:println(io:sprintf("%s", returned));
-        io:println(io:sprintf("%s", returned[0].subscribers[0]));
-    } else {
-        io:println("find failed: " + returned.reason());
-    }
-}
+//function handleFind(json|error returned) {
+//    if (returned is json) {
+//        io:print("initial data:");
+//        io:println(io:sprintf("%s", returned));
+//        io:println(io:sprintf("%s", returned[0].subscribers[0]));
+//    } else {
+//        io:println("find failed: " + returned.reason());
+//    }
+//}
 
 
 //https://api.twilio.com/2010-04-01/Accounts/AC8d68bb621b89cfc4e02ff3ba87ff9f5/SMS/Messages.json
 //
 //
 //https://api.twilio.com/2010-04-01/Accounts/AC8d68bb621b89cfc4e02ff3ba87ff9f54/SMS/Messages.json
+
+
