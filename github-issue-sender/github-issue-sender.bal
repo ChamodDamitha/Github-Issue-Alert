@@ -14,15 +14,15 @@ import ballerina/log;
 //        options: { sslEnabled: false, serverSelectionTimeout: 500 }
 //    });
 
-github4:GitHubConfiguration gitHubConfig = {
-    clientConfig: {
-        auth: {
-            scheme: http:OAUTH2,
-            accessToken:  "10b06b66e8823f8a760c8c842e99c6810e51f0b9"  //OAUTH2config:getAsString("GITHUB_TOKEN")
-        }
-    }
-};
-github4:Client githubClient = new(gitHubConfig);
+//github4:GitHubConfiguration gitHubConfig = {
+//    clientConfig: {
+//        auth: {
+//            scheme: http:OAUTH2,
+//            accessToken:  "10b06b66e8823f8a760c8c842e99c6810e51f0b9"  //OAUTH2config:getAsString("GITHUB_TOKEN")
+//        }
+//    }
+//};
+//github4:Client githubClient = new(gitHubConfig);
 
 twilio:TwilioConfiguration twilioConfig = {
     accountSId: "AC8d68bb621b89cfc4e02ff3ba87ff9f54",//config:getAsString(ACCOUNT_SID),
@@ -50,33 +50,33 @@ public function main() {
     //sendSMS();
 }
 
-function createGithubIssue() {
-    github4:Repository|error result = githubClient->getRepository("ChamodDamitha/Test-Repo");
-    //if (result is github4:Repository) {
-    //    io:println("Repository ChamodDamitha/Test-Repo: ", result);
-    //} else {
-    //    io:println("Error occurred on getRepository(): ", result);
-    //}
-
-    io:println("githubClient -> createIssue()");
-    var createdIssue = githubClient->createIssue("ChamodDamitha", "Test-Repo",
-        "This is a test issue", "This is the body of the test issue 2", ["bug", "critical"], ["VirajSalaka"]);
-    if (createdIssue is github4:Issue) {
-        io:println("Success createIssue()");
-    } else {
-        io:println(createdIssue.detail().message);
-    }
-
-
-    //github4:Repository issueRepository = { owner: { login: "ChamodDamitha" }, name: "Test-Repo" };
-    //github4:IssueList issueList = new;
-    //var issues = githubClient->getIssueList(issueRepository, github4:STATE_CLOSED, 5);
-    //if (issues is github4:IssueList) {
-    //    issueList = issues;
-    //} else {
-    //    io:println(<string>issues.detail().message);
-    //}
-}
+//function createGithubIssue() {
+//    github4:Repository|error result = githubClient->getRepository("ChamodDamitha/Test-Repo");
+//    //if (result is github4:Repository) {
+//    //    io:println("Repository ChamodDamitha/Test-Repo: ", result);
+//    //} else {
+//    //    io:println("Error occurred on getRepository(): ", result);
+//    //}
+//
+//    io:println("githubClient -> createIssue()");
+//    var createdIssue = githubClient->createIssue("ChamodDamitha", "Test-Repo",
+//        "This is a test issue", "This is the body of the test issue 2", ["bug", "critical"], ["VirajSalaka"]);
+//    if (createdIssue is github4:Issue) {
+//        io:println("Success createIssue()");
+//    } else {
+//        io:println(createdIssue.detail().message);
+//    }
+//
+//
+//    //github4:Repository issueRepository = { owner: { login: "ChamodDamitha" }, name: "Test-Repo" };
+//    //github4:IssueList issueList = new;
+//    //var issues = githubClient->getIssueList(issueRepository, github4:STATE_CLOSED, 5);
+//    //if (issues is github4:IssueList) {
+//    //    issueList = issues;
+//    //} else {
+//    //    io:println(<string>issues.detail().message);
+//    //}
+//}
 
 function sendSMS() {
     //var details = twilioClient->sendSms("+18647148814", "+94710397382", "test app");
