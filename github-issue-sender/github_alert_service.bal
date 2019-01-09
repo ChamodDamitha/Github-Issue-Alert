@@ -14,8 +14,8 @@ mongodb:Client conn = new({
 listener http:Listener httpListener = new(9090);
 
 // Subscriber REST service
-@http:ServiceConfig { basePath: "/github-subscriber" }
-service GithubSubscriber on httpListener {
+@http:ServiceConfig { basePath: "/github-alert" }
+service GithubAlert on httpListener {
     @http:ResourceConfig {
         methods: ["POST"],
         path: "/subscribe"
