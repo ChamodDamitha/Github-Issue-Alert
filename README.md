@@ -42,7 +42,7 @@ curl -X POST \
   http://localhost:9090/github-alert/subscribe \
   -H 'Content-Type: application/json' \
   -d '{
-    "repo_name": "ChamodDamitha/Test-Repo-2",
+    "repo_name": "ChamodDamitha/Test-Repository",
     "contact": "+94771111111"
 }'
 ```
@@ -53,7 +53,7 @@ Response
     "_id": {
         "$oid": "5c3700b6ff49ef05c44929f4"
     },
-    "repo_name": "Test-Repository",
+    "repo_name": "ChamodDamitha/est-Repository",
     "subscribers": [
         "+94771111111"
     ]
@@ -69,7 +69,7 @@ curl -X POST \
   -H 'Content-Type: application/json' \
   -d '{
 	"repo_owner":"ChamodDamitha",
-	"repo_name":"Test-Repo-2",
+	"repo_name":"Test-Repository",
 	"issue_title":"This is a test issue 1243 with API",
 	"issue_body":"This is the body of the test issue 1234 with API",
 	"tags":["bug"],
@@ -81,7 +81,7 @@ Response
 ```shell
 {
     "status": true,
-    "msg": "Issue : 'This is a test issue 1243 with API' on Repository : 'ChamodDamitha/Test-Repo-2'"
+    "msg": "Issue : 'This is a test issue 1243 with API' on Repository : 'ChamodDamitha/Test-Repository'"
 }
 ```
 
