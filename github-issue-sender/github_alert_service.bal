@@ -2,12 +2,13 @@ import ballerina/http;
 import ballerina/log;
 import wso2/mongodb;
 import ballerina/io;
+import ballerina/config;
 
 mongodb:Client conn = new({
-        host: "localhost",
-        dbName: "testdb",
-        username: "",
-        password: "",
+        host: config:getAsString("MONGODB_HOST"),
+        dbName: config:getAsString("MONGODB_DB_NAME"),
+        username: config:getAsString("MONGODB_USERNAME"),
+        password: config:getAsString("MONGODB_PASSWORD"),
         options: { sslEnabled: false, serverSelectionTimeout: 500 }
     });
 
@@ -15,7 +16,7 @@ github4:GitHubConfiguration gitHubConfig = {
     clientConfig: {
         auth: {
             scheme: http:OAUTH2,
-            accessToken: "8ead1c4ae8081cb353823e397ac9d033c5acb8ea" //OAUTH2config:getAsString("GITHUB_TOKEN")
+            accessToken: config:getAsString("GITHUB_TOKEN")
         }
     }
 };
@@ -122,8 +123,6 @@ function untain(string x) returns @untainted string{
 
 function createGithubIssue(string repo_owner, string repo_name, string issue_title, string issue_body,
                            string[] tags, string[] assignees) returns (boolean) {
-    //github4:Repository|error result = githubClient->getRepository(repo_owner + "/" + repo_name);
-
     var createdIssue = githubClient->createIssue(repo_owner, repo_name, issue_title, issue_body, tags, assignees);
     if (createdIssue is github4:Issue) {
         io:println("Successfully posted issue");
@@ -132,19 +131,7 @@ function createGithubIssue(string repo_owner, string repo_name, string issue_tit
         io:println("err:" + <string>createdIssue.detail().message);
         return false;
     }
-
-
-    //github4:Repository issueRepository = { owner: { login: "ChamodDamitha" }, name: "Test-Repo" };
-    //github4:IssueList issueList = new;
-    //var issues = githubClient->getIssueList(issueRepository, github4:STATE_CLOSED, 5);
-    //if (issues is github4:IssueList) {
-    //    issueList = issues;
-    //} else {
-    //    io:println(<string>issues.detail().message);
-    //}
 }
-
-
 
 function handleResponseError(error? err) {
     if (err is error) {
