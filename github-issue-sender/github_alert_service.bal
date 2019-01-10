@@ -1,17 +1,8 @@
 import ballerina/http;
 import ballerina/log;
-import wso2/mongodb;
 import ballerina/io;
 import ballerina/config;
 import wso2/github4;
-
-mongodb:Client conn = new({
-        host: config:getAsString("MONGODB_HOST"),
-        dbName: config:getAsString("MONGODB_DB_NAME"),
-        username: config:getAsString("MONGODB_USERNAME"),
-        password: config:getAsString("MONGODB_PASSWORD"),
-        options: { sslEnabled: false, serverSelectionTimeout: 500 }
-    });
 
 github4:GitHubConfiguration gitHubConfig = {
     clientConfig: {
@@ -37,10 +28,8 @@ service GithubAlert on httpListener {
         http:Response errResp = new;
         errResp.statusCode = 500;
         if (subscribeReq is json) {
-            json queryString = { "repo_name": subscribeReq.repo_name };
-            var jsonRet = conn->findOne("subscriber", queryString);
-            json payload = handleSubscribe(jsonRet, subscribeReq);
-
+            var returned = findRepoByName(<string>subscribeReq.repo_name);
+            json payload = handleSubscribe(returned, subscribeReq);
             // Send response to the client.
             var err = caller->respond(untaint payload);
             handleResponseError(err);
@@ -69,28 +58,20 @@ service GithubAlert on httpListener {
                 tags_arr, assignees_arr);
 
             if (status) {
-                json queryString = { "repo_name": issueReq.repo_name };
-                var jsonRet = conn->findOne("subscriber", queryString);
-
+                var jsonRet = findRepoByName(<string>issueReq.repo_name);
                 // Send response to the client.
                 json ret = null;
 
-                if (jsonRet is json) {
+                if (jsonRet is string) {
+                    ret = jsonRet;
+                } else {
                     if (jsonRet == null) {
-                        json doc = { "repo_name": issueReq.repo_name, "subscribers": [] };
-                        var ack = conn->insert("subscriber", doc);
-                        if (ack is ()) {
-                            ret = "Success repo record insert";
-                        } else {
-                            ret = ack.reason();
-                        }
+                        ret = insertNewRepo(<string>issueReq.repo_name);
                     } else {
                         string msg = io:sprintf("Issue : '%s' on Repository : '%s'", <string>issueReq.issue_title,
                             <string>issueReq.repo_name);
-                        sendSMS(jsonRet.subscribers, untain(msg));
+                        //sendSMS(jsonRet.subscribers, untain(msg));
                     }
-                } else {
-                    ret = jsonRet.reason();
                 }
                 var err = caller->respond(untaint ret);
                 handleResponseError(err);
@@ -115,40 +96,38 @@ function createGithubIssue(string repo_owner, string repo_name, string issue_tit
     }
 }
 
-function handleSubscribe(json|error returned, json subscribeReq) returns (json) {
-    if (returned is json) {
-        io:println(returned);
-        if (returned != null) {
-            var alreadySubscribed = false;
-            json subscribers = returned.subscribers;
-            int l = subscribers.length();
-            int i = 0;
-            while (i < l) {
-                io:println(subscribers[i]);
-                if (subscribers[i] == subscribeReq.contact) {
-                    alreadySubscribed = true;
-                    break;
-                }
-                i = i + 1;
-            }
-            if (!alreadySubscribed) {
-                returned.subscribers[returned.subscribers.length()] = subscribeReq.contact;
-                json filter = { "_id": returned._id };
-                json document = { "$set": { "subscribers": returned.subscribers } };
-                var result = conn->update("subscriber", filter, document, true, false);
-            }
-        } else {
+function handleSubscribe(json|string returned, json subscribeReq) returns (json) {
+    if (returned is string) {
+        if (returned == MONGODB_RECORD_NOT_FOUND) {
             return {
                 err: io:sprintf("Github Repository named '%s' is not open for subscription!",
                     <string>subscribeReq.repo_name)
             };
+        } else {
+            json err = {
+                err: io:sprintf("find failed: %s", returned)
+            };
+            return err;
+        }
+    } else {
+        io:println(returned);
+        var alreadySubscribed = false;
+        json subscribers = returned.subscribers;
+        int l = subscribers.length();
+        int i = 0;
+        while (i < l) {
+            io:println(subscribers[i]);
+            if (subscribers[i] == subscribeReq.contact) {
+                alreadySubscribed = true;
+                break;
+            }
+            i = i + 1;
+        }
+        if (!alreadySubscribed) {
+            returned.subscribers[returned.subscribers.length()] = subscribeReq.contact;
+            updateSubcribersInRepo(returned);
         }
         return returned;
-    } else {
-        json err = {
-            err: io:sprintf("find failed: %s", returned.reason())
-        };
-        return err;
     }
 }
 
