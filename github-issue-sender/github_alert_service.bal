@@ -3,6 +3,7 @@ import ballerina/log;
 import wso2/mongodb;
 import ballerina/io;
 import ballerina/config;
+import wso2/github4;
 
 mongodb:Client conn = new({
         host: config:getAsString("MONGODB_HOST"),
@@ -22,7 +23,7 @@ github4:GitHubConfiguration gitHubConfig = {
 };
 github4:Client githubClient = new(gitHubConfig);
 
-listener http:Listener httpListener = new(9090);
+listener http:Listener httpListener = new(config:getAsInt("SERVICE_PORT"));
 
 // Subscriber REST service
 @http:ServiceConfig { basePath: "/github-alert" }
@@ -60,33 +61,17 @@ service GithubAlert on httpListener {
         errResp.statusCode = 500;
         if (issueReq is json) {
             io:println(issueReq);
-
-            json tags = issueReq.tags;
-            int l = tags.length();
-            int i = 0;
-            string[] tags_arr = [];
-            while (i < l) {
-                tags_arr[i] = <string>tags[i];
-                i = i + 1;
-            }
-
-            json assignees = issueReq.assignees;
-            l = assignees.length();
-            i = 0;
-            string[] assignees_arr = [];
-            while (i < l) {
-                assignees_arr[i] = <string>assignees[i];
-                i = i + 1;
-            }
+            string[] tags_arr = jsonArrayToStringArray(issueReq.tags);
+            string[] assignees_arr = jsonArrayToStringArray(issueReq.assignees);
 
             boolean status = createGithubIssue(untain(<string>issueReq.repo_owner), untain(<string>issueReq.repo_name),
-                <string>issueReq.issue_title,<string>issueReq.issue_body,
+                <string>issueReq.issue_title, <string>issueReq.issue_body,
                 tags_arr, assignees_arr);
 
             if (status) {
                 json queryString = { "repo_name": issueReq.repo_name };
-                //io:println(queryString);
                 var jsonRet = conn->findOne("subscriber", queryString);
+
                 // Send response to the client.
                 json ret = null;
 
@@ -100,7 +85,8 @@ service GithubAlert on httpListener {
                             ret = ack.reason();
                         }
                     } else {
-                        string msg = "Issue : " + <string>issueReq.issue_title + " on Repository : " + <string>issueReq.repo_name;
+                        string msg = io:sprintf("Issue : '%s' on Repository : '%s'", <string>issueReq.issue_title,
+                            <string>issueReq.repo_name);
                         sendSMS(jsonRet.subscribers, untain(msg));
                     }
                 } else {
@@ -117,10 +103,6 @@ service GithubAlert on httpListener {
     }
 }
 
-function untain(string x) returns @untainted string{
-    return x;
-}
-
 function createGithubIssue(string repo_owner, string repo_name, string issue_title, string issue_body,
                            string[] tags, string[] assignees) returns (boolean) {
     var createdIssue = githubClient->createIssue(repo_owner, repo_name, issue_title, issue_body, tags, assignees);
@@ -130,12 +112,6 @@ function createGithubIssue(string repo_owner, string repo_name, string issue_tit
     } else {
         io:println("err:" + <string>createdIssue.detail().message);
         return false;
-    }
-}
-
-function handleResponseError(error? err) {
-    if (err is error) {
-        log:printError("Respond failed", err = err);
     }
 }
 
@@ -163,13 +139,14 @@ function handleSubscribe(json|error returned, json subscribeReq) returns (json) 
             }
         } else {
             return {
-                err: "Github Repository named '" + <string>subscribeReq.repo_name + "' is not open for subscription!"
+                err: io:sprintf("Github Repository named '%s' is not open for subscription!",
+                    <string>subscribeReq.repo_name)
             };
         }
         return returned;
     } else {
         json err = {
-            err: "find failed: " + returned.reason()
+            err: io:sprintf("find failed: %s", returned.reason())
         };
         return err;
     }

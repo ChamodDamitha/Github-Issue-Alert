@@ -1,7 +1,4 @@
 import ballerina/config;
-import ballerina/http;
-import wso2/mongodb;
-import wso2/github4;
 import wso2/twilio;
 import ballerina/io;
 import ballerina/log;
@@ -19,21 +16,18 @@ function sendSMS(json subscribers, string msg) {
     int l = subscribers.length();
     int i = 0;
     while (i < l) {
-        string payload = "From=" + config:getAsString("TWILIO_SENDER_PHONE") + "&To=" + <string>subscribers[i] +
-                "&Body=" + msg;
-        payload = payload.replaceAll("\\+", "%2B");
+        string payload = io:sprintf("From=%s&To=%s&Body=%s", config:getAsString("TWILIO_SENDER_PHONE"),
+            <string>subscribers[i], msg);
+        payload = encodeUrl(payload);
         req.setTextPayload(payload);
         req.setHeader("Content-Type", "application/x-www-form-urlencoded");
 
-        io:println(req.getPayloadAsString());
-
-        var response = clientEndpoint->post("/2010-04-01/Accounts/" + config:getAsString("TWILIO_USERNAME") +
-                "/Messages.json", req
-        );
+        string postUrl = io:sprintf("/2010-04-01/Accounts/%s/Messages.json", config:getAsString("TWILIO_USERNAME"));
+        var response = clientEndpoint->post(postUrl, req);
         if (response is http:Response) {
             var returned = response.getJsonPayload();
             if (returned is json) {
-                io:println(returned.toString());
+                log:printInfo(returned.toString());
             } else {
                 log:printError("Response is not json", err = returned);
             }
