@@ -53,7 +53,7 @@ Response
     "_id": {
         "$oid": "5c3700b6ff49ef05c44929f4"
     },
-    "repo_name": "ChamodDamitha/est-Repository",
+    "repo_name": "ChamodDamitha/Test-Repository",
     "subscribers": [
         "+94771111111"
     ]
