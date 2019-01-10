@@ -1,3 +1,5 @@
 final string MONGODB_RECORD_FOUND = "RECORD_FOUND";
 final string MONGODB_RECORD_NOT_FOUND = "RECORD_NOT_FOUND";
 final string MONGODB_ERR_OCCURED = "ERR_OCCURRED";
+
+final string DUMMY = "DUMMY";
