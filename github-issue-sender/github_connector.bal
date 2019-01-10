@@ -1,4 +1,5 @@
 import wso2/github4;
+import ballerina/io;
 
 github4:GitHubConfiguration gitHubConfig = {
     clientConfig: {
@@ -48,10 +49,10 @@ function handleSubscribe(json|string returned, json subscribeReq) returns (json)
 function createGithubIssue(string repo_owner, string repo_name, string issue_title, string issue_body,
                            string[] tags, string[] assignees) returns (boolean) {
     var createdIssue = githubClient->createIssue(repo_owner, repo_name, issue_title, issue_body, tags, assignees);
-    return  (createdIssue is github4:Issue);
+    return (createdIssue is github4:Issue);
 }
 
-function handlePostIssue(json issueReq) returns (json){
+function handlePostIssue(json issueReq) returns (json) {
     string[] tags_arr = jsonArrayToStringArray(issueReq.tags);
     string[] assignees_arr = jsonArrayToStringArray(issueReq.assignees);
 
@@ -61,11 +62,12 @@ function handlePostIssue(json issueReq) returns (json){
 
     json ret = null;
     if (status) {
-        var jsonRet = findRepoByName(<string>issueReq.repo_name);
+        string processed_repo_name = io:sprintf("%s/%s", <string>issueReq.repo_owner, <string>issueReq.repo_name);
+        var jsonRet = findRepoByName(processed_repo_name);
 
         if (jsonRet is string) {
             if (jsonRet == MONGODB_RECORD_NOT_FOUND) {
-                ret = insertNewRepo(<string>issueReq.repo_name);
+                ret = insertNewRepo(processed_repo_name);
             } else {
                 ret = jsonRet;
             }
@@ -74,8 +76,8 @@ function handlePostIssue(json issueReq) returns (json){
                 <string>issueReq.repo_name);
             sendSMS(jsonRet.subscribers, untain(msg));
             ret = {
-                "status" : true,
-                "msg" : msg
+                "status": true,
+                "msg": msg
             };
         }
     }
