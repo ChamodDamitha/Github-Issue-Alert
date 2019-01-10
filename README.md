@@ -40,7 +40,7 @@ curl -X POST \
   http://localhost:9090/github-alert/subscribe \
   -H 'Content-Type: application/json' \
   -d '{
-    "repo_name": "Test-Repository",
+    "repo_name": "ChamodDamitha/Test-Repo-2",
     "contact": "+94771111111"
 }'
 ```
@@ -57,6 +57,30 @@ Response
     ]
 }
 ```
+* Post a Git Issue
+##### Example
+Request
 
+```shell
+curl -X POST \
+  http://localhost:9090/github-alert/postIssue \
+  -H 'Content-Type: application/json' \
+  -d '{
+	"repo_owner":"ChamodDamitha",
+	"repo_name":"Test-Repo-2",
+	"issue_title":"This is a test issue 1243 with API",
+	"issue_body":"This is the body of the test issue 1234 with API",
+	"tags":["bug"],
+	"assignees":["ChamodDamitha"]
+}'
+```
+Response
+
+```shell
+{
+    "status": true,
+    "msg": "Issue : 'This is a test issue 1243 with API' on Repository : 'ChamodDamitha/Test-Repo-2'"
+}
+```
 
 ***
