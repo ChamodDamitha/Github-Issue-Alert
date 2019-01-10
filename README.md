@@ -1,4 +1,4 @@
-# GitHub Issue Alert Endpoint
+# GitHub Issue Alert
 GitHub Issue Alert provides a Ballerina API to subscribe to different Github repositories and post Github issues so that the subscribers get notified via SMS. 
 
 ![Overview](Github-Issue-Alert-Model.jpg)
