@@ -1,6 +1,7 @@
 import wso2/github4;
 import ballerina/io;
 
+//Create Github Client
 github4:GitHubConfiguration gitHubConfig = {
     clientConfig: {
         auth: {
@@ -11,6 +12,7 @@ github4:GitHubConfiguration gitHubConfig = {
 };
 github4:Client githubClient = new(gitHubConfig);
 
+//Subscribe to a Github Repository
 function handleSubscribe(json|string returned, json subscribeReq) returns (json) {
     if (returned is string) {
         if (returned == MONGODB_RECORD_NOT_FOUND) {
@@ -25,13 +27,12 @@ function handleSubscribe(json|string returned, json subscribeReq) returns (json)
             return err;
         }
     } else {
-        io:println(returned);
+        //Check for the subscription status
         var alreadySubscribed = false;
         json subscribers = returned.subscribers;
         int l = subscribers.length();
         int i = 0;
         while (i < l) {
-            io:println(subscribers[i]);
             if (subscribers[i] == subscribeReq.contact) {
                 alreadySubscribed = true;
                 break;
@@ -46,12 +47,14 @@ function handleSubscribe(json|string returned, json subscribeReq) returns (json)
     }
 }
 
+//Call Github connector to post a Github Issue
 function createGithubIssue(string repo_owner, string repo_name, string issue_title, string issue_body,
                            string[] tags, string[] assignees) returns (boolean) {
     var createdIssue = githubClient->createIssue(repo_owner, repo_name, issue_title, issue_body, tags, assignees);
     return (createdIssue is github4:Issue);
 }
 
+//Post a Github Issue
 function handlePostIssue(json issueReq) returns (json) {
     string[] tags_arr = jsonArrayToStringArray(issueReq.tags);
     string[] assignees_arr = jsonArrayToStringArray(issueReq.assignees);
@@ -59,15 +62,16 @@ function handlePostIssue(json issueReq) returns (json) {
     boolean status = createGithubIssue(untain(<string>issueReq.repo_owner), untain(<string>issueReq.repo_name),
         <string>issueReq.issue_title, <string>issueReq.issue_body,
         tags_arr, assignees_arr);
-    io:println(status);
 
     json ret = null;
+    //Check if the posting of issues was succesful
     if (status) {
         string processed_repo_name = io:sprintf("%s/%s", <string>issueReq.repo_owner, <string>issueReq.repo_name);
         var jsonRet = findRepoByName(processed_repo_name);
         io:println(jsonRet);
         if (jsonRet is string) {
             if (jsonRet == MONGODB_RECORD_NOT_FOUND) {
+                //Create a new record for the repo in the DB
                 ret = insertNewRepo(processed_repo_name);
                 string msg = io:sprintf("Issue : '%s' on Repository : '%s/%s'", <string>issueReq.issue_title,
                     <string>issueReq.repo_owner, <string>issueReq.repo_name);
@@ -82,9 +86,10 @@ function handlePostIssue(json issueReq) returns (json) {
                 };
             }
         } else {
+            //Send SMS to the subscribers on the posted issue
             string msg = io:sprintf("Issue : '%s' on Repository : '%s/%s'", <string>issueReq.issue_title,
                 <string>issueReq.repo_owner, <string>issueReq.repo_name);
-            //sendSMS(jsonRet.subscribers, untain(msg));
+            sendSMS(jsonRet.subscribers, untain(msg));
             ret = {
                 "status": true,
                 "msg": msg
