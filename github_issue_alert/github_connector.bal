@@ -15,8 +15,8 @@ function handleSubscribe(json|string returned, json subscribeReq) returns (json)
     if (returned is string) {
         if (returned == MONGODB_RECORD_NOT_FOUND) {
             return {
-                err: io:sprintf("Github Repository named '%s' is not open for subscription!",
-                    <string>subscribeReq.repo_name)
+                err: io:sprintf("Github Repository named '%s/%s' is not open for subscription!",
+                    <string>subscribeReq.repo_owner, <string>subscribeReq.repo_name)
             };
         } else {
             json err = {
@@ -59,27 +59,42 @@ function handlePostIssue(json issueReq) returns (json) {
     boolean status = createGithubIssue(untain(<string>issueReq.repo_owner), untain(<string>issueReq.repo_name),
         <string>issueReq.issue_title, <string>issueReq.issue_body,
         tags_arr, assignees_arr);
+    io:println(status);
 
     json ret = null;
     if (status) {
         string processed_repo_name = io:sprintf("%s/%s", <string>issueReq.repo_owner, <string>issueReq.repo_name);
         var jsonRet = findRepoByName(processed_repo_name);
-
+        io:println(jsonRet);
         if (jsonRet is string) {
             if (jsonRet == MONGODB_RECORD_NOT_FOUND) {
                 ret = insertNewRepo(processed_repo_name);
+                string msg = io:sprintf("Issue : '%s' on Repository : '%s/%s'", <string>issueReq.issue_title,
+                    <string>issueReq.repo_owner, <string>issueReq.repo_name);
+                ret = {
+                    "status": true,
+                    "msg": msg
+                };
             } else {
-                ret = jsonRet;
+                ret = {
+                    "status": false,
+                    "msg": GITHUB_ISSUE_POSTING_FAILED
+                };
             }
         } else {
-            string msg = io:sprintf("Issue : '%s' on Repository : '%s'", <string>issueReq.issue_title,
-                <string>issueReq.repo_name);
-            sendSMS(jsonRet.subscribers, untain(msg));
+            string msg = io:sprintf("Issue : '%s' on Repository : '%s/%s'", <string>issueReq.issue_title,
+                <string>issueReq.repo_owner, <string>issueReq.repo_name);
+            //sendSMS(jsonRet.subscribers, untain(msg));
             ret = {
                 "status": true,
                 "msg": msg
             };
         }
+    } else {
+        ret = {
+            "status": false,
+            "msg": GITHUB_ISSUE_POSTING_FAILED
+        };
     }
     return ret;
 }
