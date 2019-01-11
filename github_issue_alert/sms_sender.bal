@@ -3,6 +3,7 @@ import wso2/twilio;
 import ballerina/io;
 import ballerina/log;
 
+//Create Twilo REST API client
 http:Client clientEndpoint = new("https://api.twilio.com", config = {
         auth: {
             scheme: http:BASIC_AUTH,
@@ -11,6 +12,7 @@ http:Client clientEndpoint = new("https://api.twilio.com", config = {
         }
     });
 
+//Send SMS to the subscribers
 function sendSMS(json subscribers, string msg) {
     http:Request req = new;
     int l = subscribers.length();

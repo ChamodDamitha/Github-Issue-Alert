@@ -5,9 +5,10 @@ import ballerina/config;
 
 listener http:Listener httpListener = new(config:getAsInt("SERVICE_PORT"));
 
-// Subscriber REST service
+// Github Issue Alert REST service
 @http:ServiceConfig { basePath: "/github-alert" }
 service GithubAlert on httpListener {
+    //Subscribe endpoint
     @http:ResourceConfig {
         methods: ["POST"],
         path: "/subscribe"
@@ -19,7 +20,6 @@ service GithubAlert on httpListener {
         if (subscribeReq is json) {
             var returned = findRepoByName(<string>subscribeReq.repo_name);
             json payload = handleSubscribe(returned, subscribeReq);
-            // Send response to the client.
             var err = caller->respond(untaint payload);
             handleResponseError(err);
         } else {
@@ -29,6 +29,7 @@ service GithubAlert on httpListener {
         }
     }
 
+    //Posting Github issue endpoint
     @http:ResourceConfig {
         methods: ["POST"],
         path: "/postIssue"
