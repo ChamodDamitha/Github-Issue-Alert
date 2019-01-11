@@ -84,5 +84,8 @@ Response
     "msg": "Issue : 'This is a test issue 1243 with API' on Repository : 'ChamodDamitha/Test-Repository'"
 }
 ```
-
+* Testing
+```shell
+ballerina test github_issue_alert
+```
 ***
